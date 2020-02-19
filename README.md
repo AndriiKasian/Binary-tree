@@ -1,3 +1,9 @@
+## Selected language
+* TypeScript version 3.7.5
+
+## Selected Testing Framework
+* Jest version 25.1.0
+
 ## Running locally
 
 * Using [nodejs](https://nodejs.org/en/) and [npm](https://www.npmjs.com/)

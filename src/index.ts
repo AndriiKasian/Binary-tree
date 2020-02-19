@@ -171,6 +171,9 @@ testTree.rightNode.setLeftNode('d123');
 testTree.rightNode.setRightNode('asdd1');
 
 const stringFromTree = transformService.marshal(testTree);
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#result').innerHTML = stringFromTree;
+})
 console.log('STRING_FROM_TREE: ', stringFromTree); // Result should be "abc(dde()(bgws))(gaw(d123)(asdd1))"
 
 const treeFromString = transformService.unmarshal(stringFromTree);
