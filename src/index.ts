@@ -1,58 +1,58 @@
-type NodeType = TreeNode | null;
+type NodeType = TreeNode<string, NodeType> | null;
 
-interface TreeNode {
-    name: string;
-    parentNode: TreeNode;
-    leftNode: NodeType;
-    rightNode: NodeType;
-    setLeftNode(name: string): void;
-    setRightNode(name: string): void;
+export interface TreeNode<T extends string, P extends NodeType> {
+    name: T;
+    parentNode: P;
+    leftNode: P;
+    rightNode: P;
+    setLeftNode(name: T): void;
+    setRightNode(name: T): void;
 }
 
-export class BinaryTreeNode implements TreeNode {
-    name: string;
-    leftNode: NodeType;
-    rightNode: NodeType;
-    parentNode: TreeNode;
+export class BinaryTreeNode<T extends string, P extends NodeType> implements TreeNode<string, NodeType> {
+    name: T;
+    leftNode: P;
+    rightNode: P;
+    parentNode: P;
 
-    constructor(name: string, parentNode?: TreeNode) {
+    constructor(name: T, parentNode?: P) {
         this.name = name;
         this.leftNode = null;
         this.rightNode = null;
         this.parentNode = parentNode || null;
     }
 
-    setLeftNode(nodeName: string): void {
-        this.leftNode = new BinaryTreeNode(nodeName, this);
+    public setLeftNode(this: P, nodeName: T): void {
+        this.leftNode = new BinaryTreeNode<T, P>(nodeName, this);
     }
 
-    setRightNode(nodeName: string): void {
-        this.rightNode = new BinaryTreeNode(nodeName, this);
+    public setRightNode(this: P, nodeName: T): void {
+        this.rightNode = new BinaryTreeNode<T, P>(nodeName, this);
     }
 }
 
-interface Marshaling {
-    marshal(binaryTree: BinaryTreeNode): string;
-    unmarshal(value: string): BinaryTreeNode;
+interface Marshaling<T, P> {
+    marshal(binaryTree: P): string;
+    unmarshal(value: T): P;
 }
 
-export class TransformService implements Marshaling {
+export class TransformService<T extends string, P extends NodeType> implements Marshaling<T, P> {
     private charIndex: number = 0;
 
     /**
      * transform the tree into a string
      */
-    marshal(binaryTree: BinaryTreeNode): string {
+    public marshal(binaryTree: P): T {
         if (!(binaryTree instanceof BinaryTreeNode)) {
             throw new Error('Passed data should be instance of BinaryTreeNode')
         }
 
-        return this.makeMarshaling(binaryTree);
+        return this._makeMarshaling(binaryTree);
     }
 
-    private makeMarshaling(binaryTree: BinaryTreeNode): string {
+    private _makeMarshaling(binaryTree?: P): T {
         if (!binaryTree) {
-            return '';
+            return '' as T;
         }
 
         let str = '';
@@ -60,45 +60,45 @@ export class TransformService implements Marshaling {
 
         // if leaf node, then return
         if (binaryTree.leftNode === null && binaryTree.rightNode === null) {
-            return str;
+            return str as T;
         }
 
         // for left subtree
         str += '(';
-        str += this.makeMarshaling(binaryTree.leftNode);
+        str += this._makeMarshaling(binaryTree?.leftNode as P);
         str += ')';
 
         // only if right child is present to
         // avoid extra parenthesis
         if (binaryTree.rightNode !== null) {
             str += '(';
-            str += this.makeMarshaling(binaryTree.rightNode);
+            str += this._makeMarshaling(binaryTree?.rightNode as P);
             str += ')';
         }
 
-        return str;
+        return str as T;
     }
 
     /**
      * read string and create a tree data structure from it
      */
-    unmarshal(str: string): BinaryTreeNode {
-        if (typeof str !== 'string' || !str.length || !this.shouldMatchPattern(str) ) {
+    public unmarshal(str: T): P {
+        if (typeof str !== 'string' || !str.length || !this._shouldMatchPattern(str) ) {
             throw new Error('Passed data should be a string');
         }
 
-        return this.makeUnmarshaling(str);
+        return this._makeUnmarshaling(str);
     }
 
-    private makeUnmarshaling(str: string, parentNode?: BinaryTreeNode): BinaryTreeNode {
+    private _makeUnmarshaling(str: T, parentNode?: P): P {
         if (!str.length) {
             return null;
         }
         let root = null;
         if (str.charAt(this.charIndex) !== '(') {
-            const treeName = this.getValFromString(str);
+            const treeName = this._getValFromString(str);
             if (treeName.length) {
-                root = new BinaryTreeNode(treeName, parentNode);
+                root = new BinaryTreeNode<T, P>(treeName, parentNode);
             }
         }
 
@@ -106,26 +106,26 @@ export class TransformService implements Marshaling {
         let rightNode = null;
         if (this.charIndex < str.length && str.charAt(this.charIndex) === '(') { // for the possible leftNode, if '(' met.
             this.charIndex++;
-            leftNode = this.makeUnmarshaling(str, root);
+            leftNode = this._makeUnmarshaling(str, root as  P);
         }
         if (this.charIndex < str.length && str.charAt(this.charIndex) === '(') { // for the possible rightNode, if '(' met.
             this.charIndex++;
-            rightNode = this.makeUnmarshaling(str, root);
+            rightNode = this._makeUnmarshaling(str, root as P);
         }
         // if not '(' it must be ')' or charIndex == str.length
         // so we return the current stack
         if (root) {
-            root.leftNode = leftNode;
-            root.rightNode = rightNode;
+            root.leftNode = leftNode as P;
+            root.rightNode = rightNode as P;
         }
 
         this.charIndex++;
-        return root;
+        return root as P;
     }
 
-    private getValFromString(str: string): string {
+    private _getValFromString(str: T): T {
         if (typeof str !== 'string' || !str.length ) {
-            return '';
+            return '' as T;
         }
 
         let newString = '';
@@ -137,22 +137,22 @@ export class TransformService implements Marshaling {
             this.charIndex++;
         }
 
-        return newString;
+        return newString as T;
     }
 
-    private shouldMatchPattern(str: string): boolean {
+    private _shouldMatchPattern(str: T): boolean {
         const root = this.getRootValue(str);
-        const leftParentheses = this.countSymbols(str, '(');
-        const rightParentheses = this.countSymbols(str, ')');
+        const leftParentheses = this._countSymbols(str, '(' as T);
+        const rightParentheses = this._countSymbols(str, ')' as T);
 
         return root.length && leftParentheses === rightParentheses;
     }
 
-    public getRootValue(str: string): string {
-        return str.slice(0, str.indexOf("("));
+    public getRootValue(str: T): T {
+        return str.slice(0, str.indexOf("(")) as T;
     }
 
-    private countSymbols(str: string, symbol: string): number {
+    private _countSymbols(str: T, symbol: T): number {
         const regExp = new RegExp(`/\\${symbol}/`, 'g');
         const result = [...str['matchAll'](regExp)];
 
@@ -160,10 +160,10 @@ export class TransformService implements Marshaling {
     }
 }
 
-const transformService = new TransformService();
+const transformService = new TransformService<string, NodeType>();
 
 //Create test Binary Tree data structure
-const testTree = new BinaryTreeNode('abc');
+const testTree = new BinaryTreeNode<string, NodeType>('abc');
 testTree.setLeftNode('dde');
 testTree.setRightNode('gaw');
 testTree.leftNode.setRightNode('bgws');
