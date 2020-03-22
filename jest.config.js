@@ -9,5 +9,6 @@ module.exports = {
         'ts-jest': {
             diagnostics: false
         }
-    }
+    },
+    "coverageReporters": ["text-summary", "html"]
 }
