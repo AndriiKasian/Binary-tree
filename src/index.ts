@@ -1,4 +1,4 @@
-type NodeType = TreeNode<string, NodeType> | null;
+export type NodeType = TreeNode<string, NodeType> | null;
 
 export interface TreeNode<T extends string, P extends NodeType> {
     name: T;
